@@ -55,7 +55,7 @@ CREATE TABLE miembros (
     email VARCHAR(255) UNIQUE,
     telefono VARCHAR(20),
     fecha_nacimiento DATE,
-    genero ENUM('M', 'F', 'Otro'),
+    genero ENUM('M','F','Otro'),
     direccion TEXT,
     fecha_registro DATE NOT NULL,
     activo BOOLEAN DEFAULT TRUE,
@@ -143,8 +143,8 @@ CREATE TABLE pagos (
     monto DECIMAL(10,2) NOT NULL,
     fecha_pago DATE NOT NULL,
     fecha_vencimiento DATE NOT NULL,
-    metodo_pago ENUM('efectivo', 'tarjeta', 'transferencia', 'debito_automatico') NOT NULL,
-    estado ENUM('pendiente', 'pagado', 'vencido', 'cancelado') DEFAULT 'pendiente',
+    metodo_pago ENUM('efectivo','tarjeta','transferencia','debito_automatico') NOT NULL,
+    estado ENUM('pendiente','pagado','vencido','cancelado') DEFAULT 'pendiente',
     referencia_pago VARCHAR(100),
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (membresia_id) REFERENCES membresias(id)
@@ -183,3 +183,16 @@ CREATE INDEX idx_pagos_fecha_vencimiento ON pagos(fecha_vencimiento);
 CREATE INDEX idx_asistencias_fecha ON asistencias(fecha_entrada);
 CREATE INDEX idx_clases_fecha ON clases(fecha);
 CREATE INDEX idx_inscripciones_asistio ON inscripciones_clases(asistio);
+
+-- 14) Trigger para autogenerar numero_miembro
+DELIMITER //
+CREATE TRIGGER before_insert_miembros
+BEFORE INSERT ON miembros
+FOR EACH ROW
+BEGIN
+  IF NEW.numero_miembro IS NULL OR NEW.numero_miembro = '' THEN
+    SET NEW.numero_miembro = CONCAT('M', LPAD((SELECT IFNULL(MAX(id),0)+1 FROM miembros), 6, '0'));
+  END IF;
+END;
+//
+DELIMITER ;
