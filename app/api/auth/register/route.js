@@ -5,6 +5,15 @@ export async function POST(request) {
   try {
     const { nombre, apellido, email, telefono, password, sucursal_id } = await request.json()
 
+    console.log("[v0] Datos recibidos para registro:", { nombre, apellido, email, sucursal_id })
+
+    if (!sucursal_id) {
+      return NextResponse.json({
+        success: false,
+        error: "Debe seleccionar una sucursal",
+      })
+    }
+
     // Verificar si el email ya existe
     const existingUser = await query("SELECT id FROM miembros WHERE email = ?", [email])
 
@@ -15,8 +24,21 @@ export async function POST(request) {
       })
     }
 
+    const sucursalExists = await query("SELECT id, nombre FROM sucursales WHERE id = ? AND activa = TRUE", [
+      sucursal_id,
+    ])
+
+    if (sucursalExists.length === 0) {
+      return NextResponse.json({
+        success: false,
+        error: "La sucursal seleccionada no está disponible",
+      })
+    }
+
     // Encriptar contraseña con Base64
     const hashedPassword = Buffer.from(password).toString("base64")
+
+    console.log("[v0] Insertando nuevo miembro...")
 
     // Insertar nuevo miembro
     const result = await query(
@@ -24,6 +46,8 @@ export async function POST(request) {
        VALUES (?, ?, ?, ?, ?, ?, 'activo', NOW())`,
       [nombre, apellido, email, telefono, hashedPassword, sucursal_id],
     )
+
+    console.log("[v0] Miembro insertado con ID:", result.insertId)
 
     // Crear membresía inicial
     await query(
@@ -39,7 +63,10 @@ export async function POST(request) {
       email,
       tipo: "cliente",
       sucursal_id,
+      sucursal_nombre: sucursalExists[0].nombre,
     }
+
+    console.log("[v0] Registro exitoso para usuario:", user.email)
 
     return NextResponse.json({
       success: true,
@@ -50,7 +77,7 @@ export async function POST(request) {
     console.error("Error en registro:", error)
     return NextResponse.json({
       success: false,
-      error: "Error interno del servidor",
+      error: "Error interno del servidor: " + error.message,
     })
   }
 }
