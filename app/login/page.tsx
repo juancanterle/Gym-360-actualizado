@@ -3,8 +3,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5 p-4">
-      <div className="w-full max-w-md">
+    <div
+      className="min-h-screen flex items-center justify-center bg-no-repeat bg-center bg-cover
+                 sm:bg-[url('/fondo-login-mobile.jpg')] 
+                 md:bg-[url('/fondo-login.jpg')]"
+    >
+      <div className="w-full max-w-md bg-white/80 rounded-lg shadow-lg p-6">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-primary mb-2">GYM360</h1>
           <p className="text-muted-foreground">Dashboard de Gestión Integral</p>
