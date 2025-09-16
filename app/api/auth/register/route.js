@@ -14,9 +14,8 @@ export async function POST(request) {
       })
     }
 
-    // Verificar si el email ya existe
+    // Verificar si el email ya existe en miembros
     const existingUser = await query("SELECT id FROM miembros WHERE email = ?", [email])
-
     if (existingUser.length > 0) {
       return NextResponse.json({
         success: false,
@@ -24,10 +23,10 @@ export async function POST(request) {
       })
     }
 
+    // Verificar que la sucursal exista y esté activa
     const sucursalExists = await query("SELECT id, nombre FROM sucursales WHERE id = ? AND activa = TRUE", [
       sucursal_id,
     ])
-
     if (sucursalExists.length === 0) {
       return NextResponse.json({
         success: false,
@@ -35,29 +34,36 @@ export async function POST(request) {
       })
     }
 
-    // Encriptar contraseña con Base64
-    const hashedPassword = Buffer.from(password).toString("base64")
-
     console.log("[v0] Insertando nuevo miembro...")
 
     // Insertar nuevo miembro
     const result = await query(
-      `INSERT INTO miembros (nombre, apellido, email, telefono, password, sucursal_id, estado, fecha_registro) 
-       VALUES (?, ?, ?, ?, ?, ?, 'activo', NOW())`,
-      [nombre, apellido, email, telefono, hashedPassword, sucursal_id],
+      `INSERT INTO miembros (nombre, apellido, email, telefono, fecha_registro, activo, sucursal_id) 
+       VALUES (?, ?, ?, ?, NOW(), TRUE, ?)`,
+      [nombre, apellido, email, telefono, sucursal_id],
     )
 
-    console.log("[v0] Miembro insertado con ID:", result.insertId)
+    const nuevoMiembroId = result.insertId
+    console.log("[v0] Miembro insertado con ID:", nuevoMiembroId)
+
+    // Encriptar contraseña con Base64
+    const passwordHash = Buffer.from(password).toString("base64")
+
+    // Guardar usuario de login en usuarios_miembros
+    await query(
+      `INSERT INTO usuarios_miembros (miembro_id, email, password_hash) VALUES (?, ?, ?)`,
+      [nuevoMiembroId, email, passwordHash],
+    )
 
     // Crear membresía inicial
     await query(
       `INSERT INTO membresias (miembro_id, plan_id, fecha_inicio, fecha_fin, estado) 
        VALUES (?, 1, NOW(), DATE_ADD(NOW(), INTERVAL 1 MONTH), 'activa')`,
-      [result.insertId],
+      [nuevoMiembroId],
     )
 
     const user = {
-      id: result.insertId,
+      id: nuevoMiembroId,
       nombre,
       apellido,
       email,
