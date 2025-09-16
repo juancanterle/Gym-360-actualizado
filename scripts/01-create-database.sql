@@ -184,15 +184,15 @@ CREATE INDEX idx_asistencias_fecha ON asistencias(fecha_entrada);
 CREATE INDEX idx_clases_fecha ON clases(fecha);
 CREATE INDEX idx_inscripciones_asistio ON inscripciones_clases(asistio);
 
--- 14) Trigger para autogenerar numero_miembro
 DELIMITER //
 CREATE TRIGGER before_insert_miembros
 BEFORE INSERT ON miembros
 FOR EACH ROW
 BEGIN
   IF NEW.numero_miembro IS NULL OR NEW.numero_miembro = '' THEN
-    SET NEW.numero_miembro = CONCAT('M', LPAD((SELECT IFNULL(MAX(id),0)+1 FROM miembros), 6, '0'));
+    SET NEW.numero_miembro = CONCAT('M', LPAD((SELECT IFNULL(MAX(id),0) + 1 FROM miembros), 6, '0'));
   END IF;
 END;
 //
 DELIMITER ;
+
