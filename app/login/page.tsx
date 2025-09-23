@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -44,7 +43,7 @@ export default function RegistroPage() {
   const [loadingSucursales, setLoadingSucursales] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
-  const [step, setStep] = useState(1) // 1: datos personales, 2: selección sucursal
+  const [step, setStep] = useState(1) 
   const router = useRouter()
 
   const handleInputChange = (field: keyof FormData, value: string) => {
@@ -55,7 +54,6 @@ export default function RegistroPage() {
     e.preventDefault()
     setError("")
 
-    // Validaciones básicas
     if (formData.password !== formData.confirmPassword) {
       setError("Las contraseñas no coinciden")
       return
@@ -98,8 +96,6 @@ export default function RegistroPage() {
     setError("")
 
     try {
-      console.log("[v0] Enviando datos de registro:", formData)
-
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: {
@@ -110,10 +106,7 @@ export default function RegistroPage() {
 
       const data = await response.json()
 
-      console.log("[v0] Respuesta del servidor:", data)
-
       if (data.success) {
-        // Auto login después del registro
         localStorage.setItem("gym360_token", "authenticated")
         localStorage.setItem("gym360_user", JSON.stringify(data.user))
         router.push("/dashboard/cliente")
@@ -130,14 +123,14 @@ export default function RegistroPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-sm sm:max-w-md md:max-w-lg">
         <CardHeader>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" onClick={() => (step === 1 ? router.push("/login") : setStep(1))}>
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div>
-              <CardTitle>Registro de Cliente</CardTitle>
+              <CardTitle className="text-lg sm:text-xl md:text-2xl">Registro de Cliente</CardTitle>
               <CardDescription>
                 {step === 1 ? "Completa tus datos personales" : "Selecciona tu gimnasio"}
               </CardDescription>
@@ -154,68 +147,35 @@ export default function RegistroPage() {
 
           {step === 1 && (
             <form onSubmit={handleStep1Submit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="nombre">Nombre</Label>
-                  <Input
-                    id="nombre"
-                    value={formData.nombre}
-                    onChange={(e) => handleInputChange("nombre", e.target.value)}
-                    required
-                  />
+                  <Input id="nombre" value={formData.nombre} onChange={(e) => handleInputChange("nombre", e.target.value)} required />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="apellido">Apellido</Label>
-                  <Input
-                    id="apellido"
-                    value={formData.apellido}
-                    onChange={(e) => handleInputChange("apellido", e.target.value)}
-                    required
-                  />
+                  <Input id="apellido" value={formData.apellido} onChange={(e) => handleInputChange("apellido", e.target.value)} required />
                 </div>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange("email", e.target.value)}
-                  required
-                />
+                <Input id="email" type="email" value={formData.email} onChange={(e) => handleInputChange("email", e.target.value)} required />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="telefono">Teléfono</Label>
-                <Input
-                  id="telefono"
-                  value={formData.telefono}
-                  onChange={(e) => handleInputChange("telefono", e.target.value)}
-                  required
-                />
+                <Input id="telefono" value={formData.telefono} onChange={(e) => handleInputChange("telefono", e.target.value)} required />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="password">Contraseña</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => handleInputChange("password", e.target.value)}
-                  required
-                />
+                <Input id="password" type="password" value={formData.password} onChange={(e) => handleInputChange("password", e.target.value)} required />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirmar Contraseña</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  value={formData.confirmPassword}
-                  onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
-                  required
-                />
+                <Input id="confirmPassword" type="password" value={formData.confirmPassword} onChange={(e) => handleInputChange("confirmPassword", e.target.value)} required />
               </div>
 
               <Button type="submit" className="w-full">
@@ -262,14 +222,10 @@ export default function RegistroPage() {
                   <h4 className="font-medium text-green-900 mb-2">📍 Ubicación del Gimnasio</h4>
                   <div className="text-sm text-green-700">
                     {(() => {
-                      const selectedSucursal: Sucursal | undefined = sucursales.find(
-                        (s) => s.id.toString() === formData.sucursal_id,
-                      )
+                      const selectedSucursal = sucursales.find((s) => s.id.toString() === formData.sucursal_id)
                       return selectedSucursal ? (
                         <div>
-                          <p>
-                            <strong>{selectedSucursal.nombre}</strong>
-                          </p>
+                          <p><strong>{selectedSucursal.nombre}</strong></p>
                           <p>{selectedSucursal.direccion}</p>
                           <button
                             type="button"
